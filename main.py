@@ -1,6 +1,7 @@
 import time
 from kaspersmicrobit import KaspersMicrobit
 import datetime
+import json
 
 # Get the current time
 current_time = datetime.datetime.now()
@@ -14,12 +15,12 @@ future_time_string = future_time.strftime("%H:%M")
 # Print the future time
 print(future_time_string)
 
-tasks = {
-   future_time.strftime("%H:%M") : "Start presentation",
-   (future_time + datetime.timedelta(minutes=1) ).strftime("%H:%M") : "Finish presentation",
-}
-
 def print_received_string(string: str):
+    # Load tasks from a JSON file
+    print(string)
+    with open('tasks.json', 'r') as f:
+        tasks = json.load(f)
+
     if "omplete" in string:
         first_task = next(iter(tasks.items()))
         tasks.pop(first_task[0])
@@ -27,10 +28,18 @@ def print_received_string(string: str):
         print(f"Tasks: {tasks}")
         microbit.uart.send_string(first_task[0] + "..." + first_task[1] +  "\n")
         print(f"Sent to microbit: '{first_task[0] + '...' + first_task[1] }'")
+
+        # Write the updated tasks back to the JSON file
+        with open('tasks.json', 'w') as f:
+            json.dump(tasks, f)
+
     if "time" in string:
         print(f"Received from microbit: '{string}'")
         microbit.uart.send_string(f"{datetime.datetime.now().strftime('%H:%M:%S')}\n")
         print(f"Sent to microbit: '{datetime.datetime.now().strftime('%H:%M:%S')}\n'")
+    
+    if "stop" in string:
+        exit()
 
 with KaspersMicrobit.find_one_microbit() as microbit:        
     while True:
