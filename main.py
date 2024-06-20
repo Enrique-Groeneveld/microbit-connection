@@ -1,7 +1,17 @@
+# Add code to automatically download the latest version of the kaspersmicrobit library if it is not installed
+try:
+    import kaspersmicrobit
+except ImportError:
+    import os
+    os.system("pip install kaspersmicrobit")
+
 import time
 from kaspersmicrobit import KaspersMicrobit
 import datetime
 import json
+
+
+
 
 # Get the current time
 current_time = datetime.datetime.now()
@@ -20,26 +30,33 @@ def print_received_string(string: str):
     print(string)
     with open('tasks.json', 'r') as f:
         tasks = json.load(f)
+    
+    if "omplete" in string or "started" in string:
+        if tasks:
+            first_task = next(iter(tasks.items()))
+            tasks.pop(first_task[0])
+            print(f"Received from microbit: '{string}'")
+            print(f"Tasks: {tasks}")
+            microbit.uart.send_string(first_task[0] + "..." + first_task[1] +  "\n")
+            print(f"Sent to microbit: '{first_task[0] + '...' + first_task[1] }'")
 
-    if "omplete" in string:
-        first_task = next(iter(tasks.items()))
-        tasks.pop(first_task[0])
-        print(f"Received from microbit: '{string}'")
-        print(f"Tasks: {tasks}")
-        microbit.uart.send_string(first_task[0] + "..." + first_task[1] +  "\n")
-        print(f"Sent to microbit: '{first_task[0] + '...' + first_task[1] }'")
+            # Write the updated tasks back to the JSON file
+            with open('tasks.json', 'w') as f:
+                json.dump(tasks, f)
+        else:
+            print("No tasks left.")
+            microbit.uart.send_string(f"54\n")
 
-        # Write the updated tasks back to the JSON file
-        with open('tasks.json', 'w') as f:
-            json.dump(tasks, f)
 
     if "time" in string:
         print(f"Received from microbit: '{string}'")
         microbit.uart.send_string(f"{datetime.datetime.now().strftime('%H:%M:%S')}\n")
         print(f"Sent to microbit: '{datetime.datetime.now().strftime('%H:%M:%S')}\n'")
     
-    if "stop" in string:
-        exit()
+    if "stop" in string or "king" in string:
+        print("Stopped working")
+        microbit.uart.send_string(f"54\n")
+        # exit()
 
 with KaspersMicrobit.find_one_microbit() as microbit:        
     while True:
