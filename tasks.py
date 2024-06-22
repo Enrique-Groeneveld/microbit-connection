@@ -3,7 +3,10 @@ import os
 
 def add_task():
     task_name = input("Enter the task name: ")
-    task_time = input("Enter the time it needs to be completed: ")
+    task_time = ""
+    while len(task_time) != 5 or task_time[2] != ":":
+        task_time = input("Enter the time it needs to be completed 'hh:mm' format: ")
+
     if os.path.exists("tasks.json"):
         with open("tasks.json", "r") as file:
             tasks = json.load(file)

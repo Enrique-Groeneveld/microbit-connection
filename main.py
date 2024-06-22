@@ -58,8 +58,14 @@ def print_received_string(string: str):
         microbit.uart.send_string(f"54\n")
         # exit()
 
-with KaspersMicrobit.find_one_microbit() as microbit:        
-    while True:
-        # listen for strings sent by the micro:bit / luister naar tekst die verzonden wordt door de micro:bit
-        microbit.uart.receive_string(print_received_string)
-        time.sleep(20)
+while True:
+    with KaspersMicrobit.find_one_microbit() as microbit:    
+        try:
+            while True:
+                # listen for strings sent by the micro:bit / luister naar tekst die verzonden wordt door de micro:bit
+                microbit.uart.receive_string(print_received_string)
+                time.sleep(20)
+        except Exception as e:
+            print(e)
+            time.sleep(200)
+            print("Reconnecting to microbit....")
